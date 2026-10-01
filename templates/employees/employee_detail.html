@@ -1,0 +1,280 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ employee.name }} ({{ employee.employee_id }}) | SQUARE IT Support{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.35rem;">
+            <a href="{% url 'employee-list' %}" style="color: var(--text-muted); text-decoration: none; font-size: 0.85rem;">
+                <i class="fa-solid fa-arrow-left"></i> Back to Employees
+            </a>
+        </div>
+        <h1 class="page-title">
+            <i class="fa-solid fa-user-tie" style="color: var(--square-green);"></i>
+            <span>{{ employee.name }}</span>
+            <span class="code-badge" style="font-size: 1rem; margin-left: 0.5rem;">{{ employee.employee_id }}</span>
+        </h1>
+        <p class="page-description">Employee details, workstation location, and all current & past hardware assignments.</p>
+    </div>
+    <div class="page-actions">
+        <a href="{% url 'employee-edit' employee.pk %}" class="btn btn-secondary">
+            <i class="fa-solid fa-pen-to-square"></i> Edit Profile
+        </a>
+    </div>
+</div>
+
+<div class="grid-profile" style="margin-bottom: 2rem;">
+    <!-- EMPLOYEE PROFILE CARD -->
+    <div class="card" style="margin-bottom: 0;">
+        <div style="text-align: center; padding-bottom: 1.25rem; border-bottom: 1px solid var(--border-color); margin-bottom: 1.25rem;">
+            <div style="width: 72px; height: 72px; border-radius: 50%; background: #e8f8f0; color: var(--square-green); display: inline-flex; align-items: center; justify-content: center; font-size: 2rem; margin-bottom: 0.75rem;">
+                <i class="fa-solid fa-user"></i>
+            </div>
+            <h2 style="font-size: 1.25rem; font-weight: 700;">{{ employee.name }}</h2>
+            {% if employee.designation %}
+                <div style="font-size: 0.92rem; font-weight: 600; color: var(--square-green); margin-top: 0.25rem;">
+                    <i class="fa-solid fa-briefcase"></i> {{ employee.designation.name }}
+                </div>
+            {% endif %}
+            <div style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.2rem;">
+                {{ employee.department|default:"No Department" }} &bull; {{ employee.floor|default:"Floor -" }}
+            </div>
+            <div style="margin-top: 0.6rem;">
+                {% if employee.is_active %}
+                    <span class="badge badge-active"><i class="fa-solid fa-check"></i> Active Staff</span>
+                {% else %}
+                    <span class="badge badge-inactive"><i class="fa-solid fa-xmark"></i> Inactive Staff</span>
+                {% endif %}
+            </div>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 0.85rem; font-size: 0.88rem;">
+            <div>
+                <span style="color: var(--text-muted); font-size: 0.78rem; text-transform: uppercase; font-weight: 600;">Employee ID</span>
+                <p style="font-weight: 700;">{{ employee.employee_id }}</p>
+            </div>
+            <div>
+                <span style="color: var(--text-muted); font-size: 0.78rem; text-transform: uppercase; font-weight: 600;">Designation</span>
+                <p style="font-weight: 600;">{{ employee.designation.name|default:"Not specified" }}</p>
+            </div>
+            <div>
+                <span style="color: var(--text-muted); font-size: 0.78rem; text-transform: uppercase; font-weight: 600;">Email Address</span>
+                <p>
+                    {% if employee.email_address %}
+                        <a href="mailto:{{ employee.email_address }}" style="color: var(--square-green); text-decoration: none;">
+                            {{ employee.email_address }}
+                        </a>
+                    {% else %}
+                        <span style="color: var(--text-subtle);">None</span>
+                    {% endif %}
+                </p>
+            </div>
+            <div>
+                <span style="color: var(--text-muted); font-size: 0.78rem; text-transform: uppercase; font-weight: 600;">Mail Display Name</span>
+                <p>{{ employee.mail_display_name|default:"-" }}</p>
+            </div>
+            <div>
+                <span style="color: var(--text-muted); font-size: 0.78rem; text-transform: uppercase; font-weight: 600;">IP Extension</span>
+                <p>
+                    {% if employee.ip_extension %}
+                        <span class="code-badge">{{ employee.ip_extension }}</span>
+                    {% else %}
+                        <span style="color: var(--text-subtle);">None</span>
+                    {% endif %}
+                </p>
+            </div>
+            {% if employee.note %}
+            <div>
+                <span style="color: var(--text-muted); font-size: 0.78rem; text-transform: uppercase; font-weight: 600;">Notes</span>
+                <p style="background: var(--bg-muted); padding: 0.5rem 0.75rem; border-radius: var(--radius-sm); font-size: 0.82rem;">{{ employee.note }}</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- RIGHT COLUMN: CURRENT ASSETS & ASSET HISTORY -->
+    <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+        <!-- CURRENTLY ASSIGNED ASSETS -->
+        <div class="card" style="margin-bottom: 0;">
+            <div class="card-header">
+                <h3 class="card-title">
+                    <i class="fa-solid fa-laptop" style="color: var(--square-green);"></i> Currently Assigned Devices ({{ current_assets.count }})
+                </h3>
+                <a href="{% url 'reassign' %}" class="btn btn-danger btn-sm">
+                    <i class="fa-solid fa-plus"></i> Assign Device
+                </a>
+            </div>
+
+            {% if current_assets %}
+                <div class="table-responsive">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Asset No</th>
+                                <th>Device Name</th>
+                                <th>Type</th>
+                                <th>IP Address</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for asset in current_assets %}
+                            <tr>
+                                <td>
+                                    <a href="{% url 'asset-detail' asset.pk %}" style="font-weight: 700; color: var(--square-green); text-decoration: none;">
+                                        <span class="code-badge">{{ asset.asset_no }}</span>
+                                    </a>
+                                </td>
+                                <td style="font-weight: 600;">{{ asset.device_name|default:"-" }}</td>
+                                <td>{{ asset.device_type|default:"-" }}</td>
+                                <td>
+                                    {% if asset.ip_address %}
+                                        <span class="code-badge" style="font-size: 0.75rem;">{{ asset.ip_address }}</span>
+                                    {% else %}
+                                        <span style="color: var(--text-subtle);">-</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div style="display: flex; gap: 0.35rem;">
+                                        <a href="{% url 'asset-detail' asset.pk %}" class="btn btn-secondary btn-sm" title="Details">
+                                            <i class="fa-solid fa-eye"></i>
+                                        </a>
+                                        <a href="{% url 'asset-reassign' asset.pk %}" class="btn btn-danger btn-sm" title="Reassign to someone else">
+                                            <i class="fa-solid fa-right-left"></i> Reassign
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div style="text-align: center; color: var(--text-muted); padding: 2rem;">
+                    <i class="fa-solid fa-laptop-slash" style="font-size: 2rem; color: #cbd5e1; margin-bottom: 0.5rem;"></i>
+                    <p>No active IT hardware currently assigned to this employee.</p>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- ASSIGNED IP PHONES -->
+        <div class="card" style="margin-bottom: 0;">
+            <div class="card-header">
+                <h3 class="card-title">
+                    <i class="fa-solid fa-phone" style="color: var(--square-green);"></i> Assigned IP Phones ({{ employee.ip_phones.count }})
+                </h3>
+                <a href="{% url 'ip-phone-create' %}?employee={{ employee.pk }}" class="btn btn-primary btn-sm">
+                    <i class="fa-solid fa-plus"></i> Add IP Phone
+                </a>
+            </div>
+
+            {% if employee.ip_phones.all %}
+                <div class="table-responsive">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Phone No</th>
+                                <th>Model</th>
+                                <th>Section</th>
+                                <th>Workstation</th>
+                                <th>IP Address</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for phone in employee.ip_phones.all %}
+                            <tr>
+                                <td>
+                                    <a href="{% url 'ip-phone-detail' phone.pk %}" style="font-weight: 700; color: var(--square-green); text-decoration: none;">
+                                        <span class="code-badge"><i class="fa-solid fa-phone" style="font-size: 0.7rem;"></i> {{ phone.ip_phone_no }}</span>
+                                    </a>
+                                </td>
+                                <td>{{ phone.ip_phone_model|default:"-" }}</td>
+                                <td>{{ phone.section }}</td>
+                                <td>{{ phone.work_station }}</td>
+                                <td>{{ phone.ip_phone_ip_address|default:"-" }}</td>
+                                <td>
+                                    <div style="display: flex; gap: 0.35rem;">
+                                        <a href="{% url 'ip-phone-detail' phone.pk %}" class="btn btn-secondary btn-sm" title="View details">
+                                            <i class="fa-solid fa-eye"></i>
+                                        </a>
+                                        <a href="{% url 'ip-phone-edit' phone.pk %}" class="btn btn-secondary btn-sm" title="Edit phone">
+                                            <i class="fa-solid fa-pen-to-square"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div style="text-align: center; color: var(--text-muted); padding: 1.5rem;">
+                    <p style="margin-bottom: 0.5rem;">No IP phone assigned to this employee yet.</p>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- PAST ASSET ASSIGNMENT HISTORY -->
+        <div class="card" style="margin-bottom: 0;">
+            <div class="card-header">
+                <h3 class="card-title">
+                    <i class="fa-solid fa-clock-rotate-left" style="color: #2563eb;"></i> Equipment History (Past & Present)
+                </h3>
+            </div>
+
+            {% if past_history %}
+                <div class="table-responsive">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Asset No</th>
+                                <th>Device Name</th>
+                                <th>Assigned Date</th>
+                                <th>Returned Date</th>
+                                <th>Status</th>
+                                <th>Notes / Remarks</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for hist in past_history %}
+                            <tr>
+                                <td>
+                                    <a href="{% url 'asset-detail' hist.asset.pk %}" style="font-weight: 700; color: var(--square-green); text-decoration: none;">
+                                        <span class="code-badge">{{ hist.asset.asset_no }}</span>
+                                    </a>
+                                </td>
+                                <td>{{ hist.asset.device_name|default:"-" }}</td>
+                                <td style="font-size: 0.8rem; color: var(--text-muted);">{{ hist.assigned_date|date:"M d, Y" }}</td>
+                                <td style="font-size: 0.8rem; color: var(--text-muted);">
+                                    {% if hist.returned_date %}
+                                        {{ hist.returned_date|date:"M d, Y" }}
+                                    {% else %}
+                                        <span style="color: var(--square-green); font-weight: 600;">Present</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if hist.is_current %}
+                                        <span class="badge badge-assigned"><i class="fa-solid fa-circle-check"></i> Current</span>
+                                    {% else %}
+                                        <span class="badge badge-retired"><i class="fa-solid fa-rotate-left"></i> Returned</span>
+                                    {% endif %}
+                                </td>
+                                <td style="font-size: 0.82rem; color: var(--text-muted);">
+                                    {{ hist.remarks|default:"-" }}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div style="text-align: center; color: var(--text-muted); padding: 1.5rem;">
+                    <p>No historical equipment records on file.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

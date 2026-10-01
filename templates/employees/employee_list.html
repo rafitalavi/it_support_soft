@@ -1,0 +1,187 @@
+{% extends 'base.html' %}
+
+{% block title %}Employee Directory | SQUARE IT Support{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">
+            <i class="fa-solid fa-users" style="color: var(--square-green);"></i> Employee Directory
+        </h1>
+        <p class="page-description">Corporate employee profiles, departmental allocations, workstation info, and linked IT assets.</p>
+    </div>
+    <div class="page-actions">
+        <a href="{% url 'employee-create' %}" class="btn btn-primary">
+            <i class="fa-solid fa-user-plus"></i> Add New Employee
+        </a>
+    </div>
+</div>
+
+<!-- SEARCH & FILTER BAR -->
+<div class="card" style="padding: 1rem 1.25rem;">
+    <form method="GET" action="{% url 'employee-list' %}" class="search-filter-form" style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+        <div style="flex: 1; min-width: 250px;">
+            <input type="text" name="q" value="{{ query }}" class="form-input" placeholder="Search by name, employee ID, designation, department, email, extension...">
+        </div>
+        <div style="min-width: 170px;">
+            <select name="department" class="form-select" onchange="this.form.submit()">
+                <option value="">-- All Departments --</option>
+                {% for d in departments %}
+                    <option value="{{ d }}" {% if dept == d %}selected{% endif %}>{{ d }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <button type="submit" class="btn btn-primary">
+            <i class="fa-solid fa-magnifying-glass"></i> Filter
+        </button>
+        {% if query or dept %}
+            <a href="{% url 'employee-list' %}" class="btn btn-secondary">Clear</a>
+        {% endif %}
+    </form>
+</div>
+
+<!-- EMPLOYEE TABLE -->
+<div class="card">
+    <div class="table-responsive">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Employee ID</th>
+                    <th>Full Name</th>
+                    <th>Designation</th>
+                    <th>Department</th>
+                    <th>Location / Floor</th>
+                    <th>Contact Info</th>
+                    <th>Assigned Devices</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for employee in page_obj %}
+                <tr>
+                    <td>
+                        <a href="{% url 'employee-detail' employee.pk %}" style="font-weight: 700; color: var(--square-green); text-decoration: none;">
+                            <span class="code-badge">{{ employee.employee_id }}</span>
+                        </a>
+                    </td>
+                    <td>
+                        <div style="display: flex; align-items: center; gap: 0.6rem;">
+                            <div style="width: 34px; height: 34px; border-radius: 50%; background: #e8f8f0; color: var(--square-green); display: flex; align-items: center; justify-content: center; font-size: 0.95rem; flex-shrink: 0;">
+                                <i class="fa-solid fa-user"></i>
+                            </div>
+                            <div>
+                                <a href="{% url 'employee-detail' employee.pk %}" style="color: var(--text-main); font-weight: 700; text-decoration: none;">
+                                    {{ employee.name }}
+                                </a>
+                                {% if employee.mail_display_name %}
+                                    <div style="font-size: 0.75rem; color: var(--text-muted);">{{ employee.mail_display_name }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </td>
+                    <td style="font-weight: 500;">
+                        {{ employee.designation.name|default:"-" }}
+                    </td>
+                    <td>
+                        <span style="font-weight: 600;">{{ employee.department|default:"-" }}</span>
+                    </td>
+                    <td>
+                        {{ employee.floor|default:"-" }}
+                    </td>
+                    <td>
+                        <div style="font-size: 0.82rem;">
+                            {% if employee.email_address %}
+                                <div style="display: flex; align-items: center; gap: 0.35rem; color: var(--text-main);">
+                                    <i class="fa-regular fa-envelope" style="color: var(--text-muted); font-size: 0.75rem;"></i>
+                                    <span>{{ employee.email_address }}</span>
+                                </div>
+                            {% endif %}
+                            {% if employee.ip_extension %}
+                                <div style="display: flex; align-items: center; gap: 0.35rem; margin-top: 0.2rem;">
+                                    <i class="fa-solid fa-phone" style="color: var(--square-green); font-size: 0.72rem;"></i>
+                                    <span class="code-badge" style="font-size: 0.75rem; padding: 0.1rem 0.35rem;">Ext: {{ employee.ip_extension }}</span>
+                                </div>
+                            {% endif %}
+                            {% if not employee.email_address and not employee.ip_extension %}
+                                <span style="color: var(--text-muted);">-</span>
+                            {% endif %}
+                        </div>
+                    </td>
+                    <td>
+                        {% with assets=employee.assigned_assets.all %}
+                        {% if assets %}
+                            <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                                <span class="badge badge-assigned" style="width: fit-content;">
+                                    <i class="fa-solid fa-laptop"></i> {{ assets.count }} Device{{ assets.count|pluralize }}
+                                </span>
+                                <div style="font-size: 0.75rem; color: var(--text-muted); display: flex; gap: 0.25rem; flex-wrap: wrap;">
+                                    {% for a in assets|slice:":2" %}
+                                        <span class="code-badge" style="font-size: 0.7rem; padding: 0.05rem 0.3rem;">{{ a.asset_no }}</span>
+                                    {% endfor %}
+                                    {% if assets.count > 2 %}
+                                        <span style="font-size: 0.7rem; color: var(--text-muted);">+{{ assets.count|add:"-2" }} more</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% else %}
+                            <span class="badge badge-retired" style="background-color: #f1f5f9; color: #94a3b8;">
+                                <i class="fa-solid fa-minus"></i> None
+                            </span>
+                        {% endif %}
+                        {% endwith %}
+                    </td>
+                    <td>
+                        {% if employee.is_active %}
+                            <span class="badge badge-active"><i class="fa-solid fa-check"></i> Active</span>
+                        {% else %}
+                            <span class="badge badge-inactive"><i class="fa-solid fa-xmark"></i> Inactive</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div style="display: flex; gap: 0.35rem;">
+                            <a href="{% url 'employee-detail' employee.pk %}" class="btn btn-secondary btn-sm" title="View Profile & Devices">
+                                <i class="fa-solid fa-eye"></i>
+                            </a>
+                            <a href="{% url 'employee-edit' employee.pk %}" class="btn btn-secondary btn-sm" title="Edit Profile">
+                                <i class="fa-solid fa-pen-to-square"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="9" style="text-align: center; color: var(--text-muted); padding: 3rem 1rem;">
+                        <div style="display: flex; flex-direction: column; align-items: center; gap: 0.5rem;">
+                            <i class="fa-solid fa-users-slash" style="font-size: 2rem; color: #cbd5e1; margin-bottom: 0.25rem;"></i>
+                            <p style="font-size: 0.95rem; font-weight: 500;">No employees found matching your criteria.</p>
+                            <a href="{% url 'employee-create' %}" class="btn btn-primary btn-sm" style="margin-top: 0.5rem;">
+                                <i class="fa-solid fa-user-plus"></i> Add New Employee
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- PAGINATION -->
+    {% if page_obj.has_other_pages %}
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1.25rem; flex-wrap: wrap; gap: 0.75rem;">
+        <span style="font-size: 0.85rem; color: var(--text-muted);">
+            Showing page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }} ({{ page_obj.paginator.count }} total employee{{ page_obj.paginator.count|pluralize }})
+        </span>
+        <div style="display: flex; gap: 0.5rem;">
+            {% if page_obj.has_previous %}
+                <a href="?page={{ page_obj.previous_page_number }}{% if query %}&q={{ query }}{% endif %}{% if dept %}&department={{ dept }}{% endif %}" class="btn btn-secondary btn-sm">&laquo; Previous</a>
+            {% endif %}
+            <span class="btn btn-secondary btn-sm" style="background: var(--bg-muted); cursor: default; font-weight: 700;">{{ page_obj.number }}</span>
+            {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}{% if query %}&q={{ query }}{% endif %}{% if dept %}&department={{ dept }}{% endif %}" class="btn btn-secondary btn-sm">Next &raquo;</a>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

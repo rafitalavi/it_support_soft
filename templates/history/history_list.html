@@ -1,0 +1,138 @@
+{% extends 'base.html' %}
+
+{% block title %}Asset Transfer History & Audit Log | SQUARE IT Support{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">
+            <i class="fa-solid fa-clock-rotate-left" style="color: var(--square-green);"></i> Asset Transfer & History Audit Log
+        </h1>
+        <p class="page-description">Complete chronological history of every hardware assignment, reassignment, and return across Square Group.</p>
+    </div>
+    <div class="page-actions">
+        <a href="{% url 'reassign' %}" class="btn btn-danger">
+            <i class="fa-solid fa-right-left"></i> Reassign Asset
+        </a>
+    </div>
+</div>
+
+<!-- SEARCH & FILTER -->
+<div class="card" style="padding: 1rem 1.25rem;">
+    <form method="GET" action="{% url 'history-list' %}" class="search-filter-form" style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+        <div style="flex: 1; min-width: 250px;">
+            <input type="text" name="q" value="{{ query }}" class="form-input" placeholder="Search by Asset No, Device, Employee, or transfer remarks...">
+        </div>
+        <div style="min-width: 170px;">
+            <select name="status" class="form-select" onchange="this.form.submit()">
+                <option value="">-- All Records --</option>
+                <option value="active" {% if status_filter == 'active' %}selected{% endif %}>Currently Active Only</option>
+                <option value="returned" {% if status_filter == 'returned' %}selected{% endif %}>Returned Records Only</option>
+            </select>
+        </div>
+        <button type="submit" class="btn btn-primary">
+            <i class="fa-solid fa-magnifying-glass"></i> Filter
+        </button>
+        {% if query or status_filter %}
+            <a href="{% url 'history-list' %}" class="btn btn-secondary">Clear</a>
+        {% endif %}
+    </form>
+</div>
+
+<!-- HISTORY TABLE -->
+<div class="card">
+    <div class="table-responsive">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Asset</th>
+                    <th>Device Details</th>
+                    <th>Employee Assigned</th>
+                    <th>Status</th>
+                    <th>Assigned Date</th>
+                    <th>Returned Date</th>
+                    <th>Handled By (IT)</th>
+                    <th>Remarks / Notes</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for hist in page_obj %}
+                <tr>
+                    <td>
+                        <a href="{% url 'asset-detail' hist.asset.pk %}" style="font-weight: 700; color: var(--square-green); text-decoration: none;">
+                            <span class="code-badge">{{ hist.asset.asset_no }}</span>
+                        </a>
+                    </td>
+                    <td>
+                        <div style="font-weight: 600;">{{ hist.asset.device_name|default:"-" }}</div>
+                        <div style="font-size: 0.75rem; color: var(--text-muted);">{{ hist.asset.device_type|default:"Hardware" }}</div>
+                    </td>
+                    <td>
+                        <a href="{% url 'employee-detail' hist.employee.pk %}" style="color: var(--text-main); font-weight: 600; text-decoration: none;">
+                            <i class="fa-solid fa-user" style="color: var(--square-green); font-size: 0.8rem;"></i> {{ hist.employee.name }}
+                        </a>
+                        <div style="font-size: 0.75rem; color: var(--text-muted);">
+                            ID: {{ hist.employee.employee_id }} &bull; {{ hist.employee.department|default:"Dept -" }}
+                        </div>
+                    </td>
+                    <td>
+                        {% if hist.is_current %}
+                            <span class="badge badge-assigned"><i class="fa-solid fa-circle-check"></i> Active</span>
+                        {% else %}
+                            <span class="badge badge-retired"><i class="fa-solid fa-rotate-left"></i> Returned</span>
+                        {% endif %}
+                    </td>
+                    <td style="font-size: 0.82rem; color: var(--text-muted);">
+                        {{ hist.assigned_date|date:"M d, Y - h:i A" }}
+                    </td>
+                    <td style="font-size: 0.82rem; color: var(--text-muted);">
+                        {% if hist.returned_date %}
+                            {{ hist.returned_date|date:"M d, Y - h:i A" }}
+                        {% else %}
+                            <span style="color: var(--square-green); font-weight: 600;">Currently In Use</span>
+                        {% endif %}
+                    </td>
+                    <td style="font-size: 0.82rem; color: var(--text-muted);">
+                        {% if hist.assigned_by %}
+                            <div>Assigned: {{ hist.assigned_by }}</div>
+                        {% endif %}
+                        {% if hist.returned_by %}
+                            <div>Returned: {{ hist.returned_by }}</div>
+                        {% endif %}
+                        {% if not hist.assigned_by and not hist.returned_by %}
+                            -
+                        {% endif %}
+                    </td>
+                    <td style="font-size: 0.82rem; max-width: 250px;">
+                        {{ hist.remarks|default:"-" }}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="8" style="text-align: center; color: var(--text-muted); padding: 2.5rem;">
+                        No history records found matching your filter.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- PAGINATION -->
+    {% if page_obj.has_other_pages %}
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1.25rem;">
+        <span style="font-size: 0.85rem; color: var(--text-muted);">
+            Showing page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+        </span>
+        <div style="display: flex; gap: 0.5rem;">
+            {% if page_obj.has_previous %}
+                <a href="?page={{ page_obj.previous_page_number }}{% if query %}&q={{ query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}" class="btn btn-secondary btn-sm">&laquo; Previous</a>
+            {% endif %}
+            {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}{% if query %}&q={{ query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}" class="btn btn-secondary btn-sm">Next &raquo;</a>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

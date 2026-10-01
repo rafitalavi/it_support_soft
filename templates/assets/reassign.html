@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+
+{% block title %}Reassign IT Asset | SQUARE IT Support{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.35rem;">
+            <a href="{% url 'asset-list' %}" style="color: var(--text-muted); text-decoration: none; font-size: 0.85rem;">
+                <i class="fa-solid fa-arrow-left"></i> Back to IT Assets
+            </a>
+        </div>
+        <h1 class="page-title">
+            <i class="fa-solid fa-right-left" style="color: var(--square-red);"></i> Asset Transfer & Reassignment
+        </h1>
+        <p class="page-description">
+            Transfer hardware from one employee to another or return it to stock. The system automatically preserves the previous user's history and logs handover notes.
+        </p>
+    </div>
+</div>
+
+<div style="max-width: 760px; margin: 0 auto;">
+    <div class="card" style="border-top: 4px solid var(--square-red);">
+        <form method="POST">
+            {% csrf_token %}
+
+            <div class="form-group">
+                <label class="form-label" for="id_asset">
+                    <i class="fa-solid fa-laptop" style="color: var(--square-green);"></i> Select IT Asset:
+                </label>
+                {{ form.asset }}
+                {% if form.asset.errors %}
+                    <div style="color: var(--square-red); font-size: 0.82rem; margin-top: 0.25rem;">
+                        {{ form.asset.errors }}
+                    </div>
+                {% endif %}
+                <span class="form-help">Select the hardware item you want to reassign.</span>
+            </div>
+
+            {% if selected_asset %}
+                <div style="padding: 1rem; background: var(--bg-muted); border-radius: var(--radius-sm); margin-bottom: 1.5rem; border: 1px solid var(--border-color);">
+                    <div style="font-size: 0.82rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600;">Current Ownership Status</div>
+                    <div style="font-size: 1rem; font-weight: 700; margin-top: 0.25rem;">
+                        {% if selected_asset.current_employee %}
+                            <i class="fa-solid fa-user-check" style="color: var(--square-green);"></i>
+                            Assigned to: <span style="color: var(--text-main);">{{ selected_asset.current_employee.name }} ({{ selected_asset.current_employee.employee_id }})</span>
+                        {% else %}
+                            <i class="fa-solid fa-box" style="color: #2563eb;"></i>
+                            <span style="color: #2563eb;">Currently In Stock / Unassigned</span>
+                        {% endif %}
+                    </div>
+                    {% if selected_asset.ip_address %}
+                        <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.25rem;">
+                            IP Address: <span class="code-badge">{{ selected_asset.ip_address }}</span> &bull; PO No: {{ selected_asset.po_no|default:"-" }}
+                        </div>
+                    {% endif %}
+                </div>
+            {% endif %}
+
+            <div class="form-group">
+                <label class="form-label" for="id_employee">
+                    <i class="fa-solid fa-user-plus" style="color: #2563eb;"></i> New Assigned Employee:
+                </label>
+                {{ form.employee }}
+                {% if form.employee.errors %}
+                    <div style="color: var(--square-red); font-size: 0.82rem; margin-top: 0.25rem;">
+                        {{ form.employee.errors }}
+                    </div>
+                {% endif %}
+                <span class="form-help">
+                    Choose the employee to receive this device. <strong>Tip:</strong> Leave this field empty if you are returning the device back to IT inventory/stock.
+                </span>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="id_remarks">
+                    <i class="fa-solid fa-comment-dots" style="color: var(--text-muted);"></i> Handover Notes / Remarks:
+                </label>
+                {{ form.remarks }}
+                {% if form.remarks.errors %}
+                    <div style="color: var(--square-red); font-size: 0.82rem; margin-top: 0.25rem;">
+                        {{ form.remarks.errors }}
+                    </div>
+                {% endif %}
+                <span class="form-help">e.g., "Transferred for new project", "Returned due to hardware upgrade", "Device in good working order".</span>
+            </div>
+
+            <div class="page-actions" style="justify-content: flex-end; margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--border-color);">
+                <a href="{% url 'asset-list' %}" class="btn btn-secondary">Cancel</a>
+                <button type="submit" class="btn btn-danger">
+                    <i class="fa-solid fa-right-left"></i> Confirm Reassignment
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,281 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }} | SQUARE IT Support{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.35rem;">
+            <a href="{% url 'employee-list' %}" style="color: var(--text-muted); text-decoration: none; font-size: 0.85rem;">
+                <i class="fa-solid fa-arrow-left"></i> Back to Employees
+            </a>
+        </div>
+        <h1 class="page-title">{{ title }}</h1>
+        <p class="page-description">Fill out staff information, job title, department allocation, and contact details.</p>
+    </div>
+</div>
+
+<div style="max-width: 820px; margin: 0 auto;">
+    <div class="card">
+        <form method="POST" id="employeeForm">
+            {% csrf_token %}
+
+            <!-- SECTION 1: IDENTITY & DESIGNATION -->
+            <div style="margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border-color);">
+                <h3 style="font-size: 1rem; font-weight: 700; color: var(--text-main); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                    <i class="fa-solid fa-id-card" style="color: var(--square-green);"></i> Personal & Designation Details
+                </h3>
+
+                <div class="grid-form">
+                    <div class="form-group">
+                        <label class="form-label" for="id_employee_id">Employee ID *</label>
+                        {{ form.employee_id }}
+                        {% if form.employee_id.errors %}
+                            <div style="color: var(--square-red); font-size: 0.82rem; margin-top: 0.25rem;">{{ form.employee_id.errors }}</div>
+                        {% endif %}
+                        <span class="form-help">Unique staff ID (e.g. EMP001, 12345678)</span>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="id_name">Full Name *</label>
+                        {{ form.name }}
+                        {% if form.name.errors %}
+                            <div style="color: var(--square-red); font-size: 0.82rem; margin-top: 0.25rem;">{{ form.name.errors }}</div>
+                        {% endif %}
+                        <span class="form-help">Staff full name as per official records</span>
+                    </div>
+
+                    <div class="form-group">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
+                            <label class="form-label" for="id_designation" style="margin-bottom: 0;">
+                                <i class="fa-solid fa-briefcase" style="color: var(--square-green);"></i> Designation
+                            </label>
+                            <button type="button" class="btn btn-secondary btn-sm" id="btnOpenDesignationModal" onclick="openDesignationModal()" style="padding: 0.2rem 0.6rem; font-size: 0.75rem; border-color: #cbd5e1; color: var(--square-green);">
+                                <i class="fa-solid fa-plus"></i> New Designation
+                            </button>
+                        </div>
+                        {{ form.designation }}
+                        {% if form.designation.errors %}
+                            <div style="color: var(--square-red); font-size: 0.82rem; margin-top: 0.25rem;">{{ form.designation.errors }}</div>
+                        {% endif %}
+                        <span class="form-help">Select designation or click "+ New Designation" to add one.</span>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="id_mail_display_name">Mail Display Name</label>
+                        {{ form.mail_display_name }}
+                        {% if form.mail_display_name.errors %}
+                            <div style="color: var(--square-red); font-size: 0.82rem; margin-top: 0.25rem;">{{ form.mail_display_name.errors }}</div>
+                        {% endif %}
+                        <span class="form-help">e.g. John Doe (IT)</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION 2: WORKSTATION & CONTACT -->
+            <div style="margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border-color);">
+                <h3 style="font-size: 1rem; font-weight: 700; color: var(--text-main); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                    <i class="fa-solid fa-building" style="color: #2563eb;"></i> Department & Location
+                </h3>
+
+                <div class="grid-form">
+                    <div class="form-group">
+                        <label class="form-label" for="id_department">Department</label>
+                        {{ form.department }}
+                        {% if form.department.errors %}
+                            <div style="color: var(--square-red); font-size: 0.82rem; margin-top: 0.25rem;">{{ form.department.errors }}</div>
+                        {% endif %}
+                        <span class="form-help">e.g. Information Technology, Quality Assurance</span>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="id_floor">Floor / Location</label>
+                        {{ form.floor }}
+                        {% if form.floor.errors %}
+                            <div style="color: var(--square-red); font-size: 0.82rem; margin-top: 0.25rem;">{{ form.floor.errors }}</div>
+                        {% endif %}
+                        <span class="form-help">e.g. 5th Floor, Square Centre</span>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="id_email_address">Email Address</label>
+                        {{ form.email_address }}
+                        {% if form.email_address.errors %}
+                            <div style="color: var(--square-red); font-size: 0.82rem; margin-top: 0.25rem;">{{ form.email_address.errors }}</div>
+                        {% endif %}
+                        <span class="form-help">Official Square email address</span>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="id_ip_extension">IP Extension / Intercom</label>
+                        {{ form.ip_extension }}
+                        {% if form.ip_extension.errors %}
+                            <div style="color: var(--square-red); font-size: 0.82rem; margin-top: 0.25rem;">{{ form.ip_extension.errors }}</div>
+                        {% endif %}
+                        <span class="form-help">Workstation extension (e.g. 4021)</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION 3: STATUS & NOTES -->
+            <div>
+                <h3 style="font-size: 1rem; font-weight: 700; color: var(--text-main); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                    <i class="fa-solid fa-clipboard-check" style="color: var(--square-green);"></i> Employment Status & Notes
+                </h3>
+
+                <div class="form-group" style="display: flex; align-items: center; gap: 0.65rem; background: var(--bg-muted); padding: 0.75rem 1rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color); margin-bottom: 1.25rem;">
+                    {{ form.is_active }}
+                    <label class="form-label" for="id_is_active" style="margin-bottom: 0; cursor: pointer; font-weight: 600;">
+                        Active Employee (eligible to receive and hold IT assets)
+                    </label>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="id_note">Remarks & Notes</label>
+                    {{ form.note }}
+                    {% if form.note.errors %}
+                        <div style="color: var(--square-red); font-size: 0.82rem; margin-top: 0.25rem;">{{ form.note.errors }}</div>
+                    {% endif %}
+                    <span class="form-help">Any additional remarks, joining notes, or special hardware entitlements.</span>
+                </div>
+            </div>
+
+            <div class="page-actions" style="justify-content: flex-end; margin-top: 1.75rem; padding-top: 1rem; border-top: 1px solid var(--border-color);">
+                <a href="{% url 'employee-list' %}" class="btn btn-secondary">Cancel</a>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fa-solid fa-floppy-disk"></i> Save Employee
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- QUICK ADD DESIGNATION MODAL -->
+<div id="designationModal" class="modal-backdrop" style="display: none;">
+    <div class="modal-dialog" style="max-width: 440px;">
+        <div class="modal-header">
+            <h3 class="modal-title">
+                <i class="fa-solid fa-briefcase" style="color: var(--square-green);"></i> Add New Designation
+            </h3>
+            <button type="button" class="modal-close" onclick="closeDesignationModal()">&times;</button>
+        </div>
+        <div class="modal-body" style="display: flex; flex-direction: column; gap: 1rem;">
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0;">
+                Create a new job title / designation. It will be immediately added to the dropdown and selected.
+            </p>
+            <div class="form-group" style="margin-bottom: 0;">
+                <label class="form-label" for="new_designation_name">Designation Title *</label>
+                <input type="text" id="new_designation_name" class="form-input" placeholder="e.g. Senior Software Engineer">
+                <div id="designationModalError" style="color: var(--square-red); font-size: 0.82rem; margin-top: 0.35rem; display: none;"></div>
+            </div>
+        </div>
+        <div class="modal-footer" style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1.25rem;">
+            <button type="button" class="btn btn-secondary btn-sm" onclick="closeDesignationModal()">Cancel</button>
+            <button type="button" class="btn btn-primary btn-sm" id="btnSaveDesignation" onclick="saveNewDesignation()">
+                <i class="fa-solid fa-check"></i> Add & Select
+            </button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function openDesignationModal() {
+        const modal = document.getElementById('designationModal');
+        const input = document.getElementById('new_designation_name');
+        const errorDiv = document.getElementById('designationModalError');
+        if (errorDiv) {
+            errorDiv.style.display = 'none';
+            errorDiv.innerText = '';
+        }
+        if (input) {
+            input.value = '';
+        }
+        modal.style.display = 'flex';
+        setTimeout(() => input && input.focus(), 100);
+    }
+
+    function closeDesignationModal() {
+        const modal = document.getElementById('designationModal');
+        if (modal) modal.style.display = 'none';
+    }
+
+    async function saveNewDesignation() {
+        const input = document.getElementById('new_designation_name');
+        const errorDiv = document.getElementById('designationModalError');
+        const saveBtn = document.getElementById('btnSaveDesignation');
+        const select = document.getElementById('id_designation');
+        const name = input ? input.value.trim() : '';
+
+        if (!name) {
+            errorDiv.innerText = 'Please enter a designation name.';
+            errorDiv.style.display = 'block';
+            return;
+        }
+
+        saveBtn.disabled = true;
+        saveBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
+
+        try {
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+            const formData = new FormData();
+            formData.append('name', name);
+
+            const res = await fetch("{% url 'designation-create-ajax' %}", {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrfToken
+                },
+                body: formData
+            });
+
+            const data = await res.json();
+            if (data.success) {
+                // Check if option already exists in select
+                let existingOpt = null;
+                for (let i = 0; i < select.options.length; i++) {
+                    if (select.options[i].value == data.id) {
+                        existingOpt = select.options[i];
+                        break;
+                    }
+                }
+
+                if (!existingOpt) {
+                    const newOpt = document.createElement('option');
+                    newOpt.value = data.id;
+                    newOpt.textContent = data.name;
+                    select.appendChild(newOpt);
+                    select.value = data.id;
+                } else {
+                    select.value = data.id;
+                }
+
+                closeDesignationModal();
+            } else {
+                errorDiv.innerText = data.error || 'Failed to create designation.';
+                errorDiv.style.display = 'block';
+            }
+        } catch (err) {
+            errorDiv.innerText = 'Network error while creating designation.';
+            errorDiv.style.display = 'block';
+        } finally {
+            saveBtn.disabled = false;
+            saveBtn.innerHTML = '<i class="fa-solid fa-check"></i> Add & Select';
+        }
+    }
+
+    // Modal close helpers
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') closeDesignationModal();
+        if (e.key === 'Enter' && document.getElementById('designationModal').style.display === 'flex') {
+            e.preventDefault();
+            saveNewDesignation();
+        }
+    });
+
+    document.getElementById('designationModal').addEventListener('click', function(e) {
+        if (e.target === this) closeDesignationModal();
+    });
+</script>
+{% endblock %}

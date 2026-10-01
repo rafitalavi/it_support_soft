@@ -1,0 +1,147 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }} | SQUARE IT Support{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.35rem;">
+            <a href="{% url 'ip-phone-list' %}" style="color: var(--text-muted); text-decoration: none; font-size: 0.85rem;">
+                <i class="fa-solid fa-arrow-left"></i> Back to IP Phones
+            </a>
+        </div>
+        <h1 class="page-title">{{ title }}</h1>
+        <p class="page-description">Configure VoIP hardware specifications, network parameters, and staff workstation mapping.</p>
+    </div>
+</div>
+
+<div style="max-width: 820px; margin: 0 auto;">
+    <div class="card">
+        <form method="POST">
+            {% csrf_token %}
+
+            <!-- SECTION 1: ASSIGNED EMPLOYEE & USER -->
+            <div style="margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border-color);">
+                <h3 style="font-size: 1rem; font-weight: 700; color: var(--text-main); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                    <i class="fa-solid fa-user-check" style="color: var(--square-green);"></i> Employee & User Allocation
+                </h3>
+
+                <div class="grid-form">
+                    <div class="form-group">
+                        <label class="form-label" for="id_employee">Assigned Employee *</label>
+                        {{ form.employee }}
+                        {% if form.employee.errors %}
+                            <div style="color: var(--square-red); font-size: 0.82rem; margin-top: 0.25rem;">{{ form.employee.errors }}</div>
+                        {% endif %}
+                        <span class="form-help">Select staff member who will use this phone</span>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="id_user">System User (Optional)</label>
+                        {{ form.user }}
+                        {% if form.user.errors %}
+                            <div style="color: var(--square-red); font-size: 0.82rem; margin-top: 0.25rem;">{{ form.user.errors }}</div>
+                        {% endif %}
+                        <span class="form-help">Portal user account if mapped directly to IT login</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION 2: WORKSTATION LOCATION -->
+            <div style="margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border-color);">
+                <h3 style="font-size: 1rem; font-weight: 700; color: var(--text-main); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                    <i class="fa-solid fa-building" style="color: #2563eb;"></i> Location & Desk Placement
+                </h3>
+
+                <div class="grid-form">
+                    <div class="form-group">
+                        <label class="form-label" for="id_section">Section *</label>
+                        {{ form.section }}
+                        {% if form.section.errors %}
+                            <div style="color: var(--square-red); font-size: 0.82rem; margin-top: 0.25rem;">{{ form.section.errors }}</div>
+                        {% endif %}
+                        <span class="form-help">e.g. IT Operations, Finance, Supply Chain</span>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="id_work_station">Work Station / Desk *</label>
+                        {{ form.work_station }}
+                        {% if form.work_station.errors %}
+                            <div style="color: var(--square-red); font-size: 0.82rem; margin-top: 0.25rem;">{{ form.work_station.errors }}</div>
+                        {% endif %}
+                        <span class="form-help">e.g. Desk-402, 5th Floor Cubicle B</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION 3: PHONE SPECS & NETWORK -->
+            <div style="margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border-color);">
+                <h3 style="font-size: 1rem; font-weight: 700; color: var(--text-main); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                    <i class="fa-solid fa-phone" style="color: var(--square-green);"></i> Hardware & Network Configuration
+                </h3>
+
+                <div class="grid-form">
+                    <div class="form-group">
+                        <label class="form-label" for="id_ip_phone_no">Extension / Phone Number *</label>
+                        {{ form.ip_phone_no }}
+                        {% if form.ip_phone_no.errors %}
+                            <div style="color: var(--square-red); font-size: 0.82rem; margin-top: 0.25rem;">{{ form.ip_phone_no.errors }}</div>
+                        {% endif %}
+                        <span class="form-help">VoIP Intercom / Extension number (e.g. 4021)</span>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="id_ip_phone_model">Phone Model</label>
+                        {{ form.ip_phone_model }}
+                        {% if form.ip_phone_model.errors %}
+                            <div style="color: var(--square-red); font-size: 0.82rem; margin-top: 0.25rem;">{{ form.ip_phone_model.errors }}</div>
+                        {% endif %}
+                        <span class="form-help">e.g. Cisco 7821, Yealink SIP-T46U</span>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="id_ip_phone_ip_address">IP Address</label>
+                        {{ form.ip_phone_ip_address }}
+                        {% if form.ip_phone_ip_address.errors %}
+                            <div style="color: var(--square-red); font-size: 0.82rem; margin-top: 0.25rem;">{{ form.ip_phone_ip_address.errors }}</div>
+                        {% endif %}
+                        <span class="form-help">Static or DHCP IP (e.g. 192.168.20.105)</span>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="id_ip_phone_mac_address">MAC Address</label>
+                        {{ form.ip_phone_mac_address }}
+                        {% if form.ip_phone_mac_address.errors %}
+                            <div style="color: var(--square-red); font-size: 0.82rem; margin-top: 0.25rem;">{{ form.ip_phone_mac_address.errors }}</div>
+                        {% endif %}
+                        <span class="form-help">Hardware MAC (e.g. 00:08:E2:09:A1:B2)</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION 4: NOTES -->
+            <div>
+                <h3 style="font-size: 1rem; font-weight: 700; color: var(--text-main); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                    <i class="fa-solid fa-comment-dots" style="color: #64748b;"></i> Notes & Remarks
+                </h3>
+
+                <div class="form-group">
+                    <label class="form-label" for="id_note">Additional Remarks</label>
+                    {{ form.note }}
+                    {% if form.note.errors %}
+                        <div style="color: var(--square-red); font-size: 0.82rem; margin-top: 0.25rem;">{{ form.note.errors }}</div>
+                    {% endif %}
+                    <span class="form-help">VLAN, switch port, PBX profile, or setup instructions.</span>
+                </div>
+            </div>
+
+            <div class="page-actions" style="justify-content: flex-end; margin-top: 1.75rem; padding-top: 1rem; border-top: 1px solid var(--border-color);">
+                <a href="{% url 'ip-phone-list' %}" class="btn btn-secondary">Cancel</a>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fa-solid fa-floppy-disk"></i> Save IP Phone
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

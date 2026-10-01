@@ -1,0 +1,153 @@
+{% extends 'base.html' %}
+
+{% block title %}IP Phones Directory | SQUARE IT Support{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">
+            <i class="fa-solid fa-phone" style="color: var(--square-green);"></i> IP Phones & Extensions
+        </h1>
+        <p class="page-description">Workstation VoIP phone extensions, hardware models, MAC addresses, and employee allocations.</p>
+    </div>
+    <div class="page-actions">
+        <a href="{% url 'ip-phone-create' %}" class="btn btn-primary">
+            <i class="fa-solid fa-plus"></i> Register IP Phone
+        </a>
+    </div>
+</div>
+
+<!-- SEARCH & FILTER -->
+<div class="card" style="padding: 1rem 1.25rem;">
+    <form method="GET" action="{% url 'ip-phone-list' %}" class="search-filter-form" style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+        <div style="flex: 1; min-width: 250px;">
+            <input type="text" name="q" value="{{ query }}" class="form-input" placeholder="Search by Phone No, Employee name, ID, Section, Workstation, Model, MAC, or IP...">
+        </div>
+        <div style="min-width: 170px;">
+            <select name="section" class="form-select" onchange="this.form.submit()">
+                <option value="">-- All Sections --</option>
+                {% for s in sections %}
+                    <option value="{{ s }}" {% if section_filter == s %}selected{% endif %}>{{ s }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <button type="submit" class="btn btn-primary">
+            <i class="fa-solid fa-magnifying-glass"></i> Filter
+        </button>
+        {% if query or section_filter %}
+            <a href="{% url 'ip-phone-list' %}" class="btn btn-secondary">Clear</a>
+        {% endif %}
+    </form>
+</div>
+
+<!-- IP PHONES TABLE -->
+<div class="card">
+    <div class="table-responsive">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Extension / Phone No</th>
+                    <th>Assigned Employee</th>
+                    <th>Section</th>
+                    <th>Work Station</th>
+                    <th>Phone Model</th>
+                    <th>IP Address</th>
+                    <th>MAC Address</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for phone in page_obj %}
+                <tr>
+                    <td>
+                        <a href="{% url 'ip-phone-detail' phone.pk %}" style="font-weight: 700; color: var(--square-green); text-decoration: none;">
+                            <span class="code-badge" style="font-size: 0.95rem; font-weight: 700;">
+                                <i class="fa-solid fa-phone" style="font-size: 0.75rem;"></i> {{ phone.ip_phone_no }}
+                            </span>
+                        </a>
+                    </td>
+                    <td>
+                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                            <i class="fa-solid fa-user-tie" style="color: var(--square-green);"></i>
+                            <div>
+                                <a href="{% url 'employee-detail' phone.employee.pk %}" style="color: var(--text-main); font-weight: 600; text-decoration: none;">
+                                    {{ phone.employee.name }}
+                                </a>
+                                <div style="font-size: 0.75rem; color: var(--text-muted);">
+                                    ID: {{ phone.employee.employee_id }}
+                                    {% if phone.employee.designation %}
+                                        &bull; {{ phone.employee.designation.name }}
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <span class="badge" style="background: #f1f5f9; color: #334155; font-weight: 600;">
+                            {{ phone.section }}
+                        </span>
+                    </td>
+                    <td>
+                        <span style="font-weight: 600;">{{ phone.work_station }}</span>
+                    </td>
+                    <td>
+                        {{ phone.ip_phone_model|default:"-" }}
+                    </td>
+                    <td>
+                        {% if phone.ip_phone_ip_address %}
+                            <span class="code-badge" style="font-size: 0.78rem;">{{ phone.ip_phone_ip_address }}</span>
+                        {% else %}
+                            <span style="color: var(--text-subtle);">-</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if phone.ip_phone_mac_address %}
+                            <span style="font-family: monospace; font-size: 0.78rem; color: var(--text-muted);">{{ phone.ip_phone_mac_address }}</span>
+                        {% else %}
+                            <span style="color: var(--text-subtle);">-</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div style="display: flex; gap: 0.35rem;">
+                            <a href="{% url 'ip-phone-detail' phone.pk %}" class="btn btn-secondary btn-sm" title="View details">
+                                <i class="fa-solid fa-eye"></i>
+                            </a>
+                            <a href="{% url 'ip-phone-edit' phone.pk %}" class="btn btn-secondary btn-sm" title="Edit specifications">
+                                <i class="fa-solid fa-pen-to-square"></i>
+                            </a>
+                            <a href="{% url 'ip-phone-delete' phone.pk %}" class="btn btn-secondary btn-sm" style="color: var(--square-red);" title="Delete record">
+                                <i class="fa-solid fa-trash-can"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="8" style="text-align: center; color: var(--text-muted); padding: 2.5rem;">
+                        <i class="fa-solid fa-phone-slash" style="font-size: 2rem; color: #cbd5e1; margin-bottom: 0.5rem; display: block;"></i>
+                        No IP phone records found matching your criteria. <a href="{% url 'ip-phone-create' %}">Register a new IP phone</a>.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- PAGINATION -->
+    {% if page_obj.has_other_pages %}
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1.25rem; flex-wrap: wrap; gap: 0.75rem;">
+        <span style="font-size: 0.85rem; color: var(--text-muted);">
+            Showing page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }} (Total: {{ total_count }})
+        </span>
+        <div style="display: flex; gap: 0.5rem;">
+            {% if page_obj.has_previous %}
+                <a href="?page={{ page_obj.previous_page_number }}{% if query %}&q={{ query }}{% endif %}{% if section_filter %}&section={{ section_filter }}{% endif %}" class="btn btn-secondary btn-sm">&laquo; Previous</a>
+            {% endif %}
+            {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}{% if query %}&q={{ query }}{% endif %}{% if section_filter %}&section={{ section_filter }}{% endif %}" class="btn btn-secondary btn-sm">Next &raquo;</a>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

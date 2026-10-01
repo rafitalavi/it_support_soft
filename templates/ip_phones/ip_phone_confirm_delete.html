@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+
+{% block title %}Delete IP Phone {{ phone.ip_phone_no }} | SQUARE IT Support{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.35rem;">
+            <a href="{% url 'ip-phone-detail' phone.pk %}" style="color: var(--text-muted); text-decoration: none; font-size: 0.85rem;">
+                <i class="fa-solid fa-arrow-left"></i> Back to IP Phone
+            </a>
+        </div>
+        <h1 class="page-title" style="color: var(--square-red);">
+            <i class="fa-solid fa-triangle-exclamation"></i> Confirm Delete IP Phone
+        </h1>
+        <p class="page-description">Are you sure you want to remove this IP phone record from the system?</p>
+    </div>
+</div>
+
+<div style="max-width: 600px; margin: 0 auto;">
+    <div class="card" style="border-top: 4px solid var(--square-red);">
+        <p style="font-size: 0.95rem; margin-bottom: 1.25rem;">
+            You are about to delete the following IP phone allocation:
+        </p>
+
+        <div style="background: var(--bg-muted); padding: 1rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color); margin-bottom: 1.5rem; font-size: 0.9rem;">
+            <div style="margin-bottom: 0.4rem;"><strong>Phone No:</strong> <span class="code-badge">{{ phone.ip_phone_no }}</span></div>
+            <div style="margin-bottom: 0.4rem;"><strong>Assigned To:</strong> {{ phone.employee.name }} ({{ phone.employee.employee_id }})</div>
+            <div style="margin-bottom: 0.4rem;"><strong>Section / Workstation:</strong> {{ phone.section }} &bull; {{ phone.work_station }}</div>
+            <div><strong>Model / IP:</strong> {{ phone.ip_phone_model|default:"-" }} &bull; {{ phone.ip_phone_ip_address|default:"-" }}</div>
+        </div>
+
+        <form method="POST">
+            {% csrf_token %}
+            <div class="page-actions" style="justify-content: flex-end;">
+                <a href="{% url 'ip-phone-detail' phone.pk %}" class="btn btn-secondary">Cancel</a>
+                <button type="submit" class="btn btn-danger">
+                    <i class="fa-solid fa-trash-can"></i> Yes, Permanently Delete
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

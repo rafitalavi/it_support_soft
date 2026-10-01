@@ -1,0 +1,150 @@
+{% extends 'base.html' %}
+
+{% block title %}IT Assets Inventory | SQUARE IT Support{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">
+            <i class="fa-solid fa-laptop" style="color: var(--square-green);"></i> IT Hardware Assets
+        </h1>
+        <p class="page-description">Complete list of laptops, desktops, printers, and network devices registered in Square IT.</p>
+    </div>
+    <div class="page-actions">
+        <a href="{% url 'reassign' %}" class="btn btn-danger">
+            <i class="fa-solid fa-right-left"></i> Reassign Asset
+        </a>
+        <a href="{% url 'asset-create' %}" class="btn btn-primary">
+            <i class="fa-solid fa-plus"></i> Add New Asset
+        </a>
+    </div>
+</div>
+
+<!-- SEARCH & FILTER BAR -->
+<div class="card" style="padding: 1rem 1.25rem;">
+    <form method="GET" action="{% url 'asset-list' %}" class="search-filter-form" style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+        <div style="flex: 1; min-width: 250px;">
+            <input type="text" name="q" value="{{ query }}" class="form-input" placeholder="Search by Asset No, device name, IP address, PO No, or employee...">
+        </div>
+        <div style="min-width: 170px;">
+            <select name="status" class="form-select" onchange="this.form.submit()">
+                <option value="">-- All Statuses --</option>
+                {% for code, label in status_choices %}
+                    <option value="{{ code }}" {% if status_filter == code %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <button type="submit" class="btn btn-primary">
+            <i class="fa-solid fa-magnifying-glass"></i> Filter
+        </button>
+        {% if query or status_filter %}
+            <a href="{% url 'asset-list' %}" class="btn btn-secondary">Clear</a>
+        {% endif %}
+    </form>
+</div>
+
+<!-- ASSET TABLE -->
+<div class="card">
+    <div class="table-responsive">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Asset No</th>
+                    <th>Device Name</th>
+                    <th>Type</th>
+                    <th>IP Address</th>
+                    <th>Status</th>
+                    <th>Currently Assigned To</th>
+                    <th>PO No</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for asset in page_obj %}
+                <tr>
+                    <td>
+                        <a href="{% url 'asset-detail' asset.pk %}" style="font-weight: 700; color: var(--square-green); text-decoration: none;">
+                            <span class="code-badge">{{ asset.asset_no }}</span>
+                        </a>
+                    </td>
+                    <td style="font-weight: 600;">{{ asset.device_name|default:"-" }}</td>
+                    <td>{{ asset.device_type|default:"-" }}</td>
+                    <td>
+                        {% if asset.ip_address %}
+                            <span class="code-badge" style="font-size: 0.75rem;">{{ asset.ip_address }}</span>
+                        {% else %}
+                            <span style="color: var(--text-subtle);">-</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if asset.status == 'ASSIGNED' %}
+                            <span class="badge badge-assigned"><i class="fa-solid fa-circle-check"></i> Assigned</span>
+                        {% elif asset.status == 'AVAILABLE' %}
+                            <span class="badge badge-available"><i class="fa-solid fa-box"></i> Available</span>
+                        {% elif asset.status == 'MAINTENANCE' %}
+                            <span class="badge badge-maintenance"><i class="fa-solid fa-wrench"></i> Maintenance</span>
+                        {% else %}
+                            <span class="badge badge-retired"><i class="fa-solid fa-ban"></i> Retired</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if asset.current_employee %}
+                            <a href="{% url 'employee-detail' asset.current_employee.pk %}" style="color: var(--text-main); font-weight: 600; text-decoration: none;">
+                                <i class="fa-solid fa-user" style="color: var(--square-green); font-size: 0.8rem;"></i> {{ asset.current_employee.name }}
+                            </a>
+                            <div style="font-size: 0.75rem; color: var(--text-muted);">
+                                ID: {{ asset.current_employee.employee_id }}
+                            </div>
+                        {% else %}
+                            <span style="color: var(--text-muted); font-style: italic;">In IT Inventory</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ asset.po_no|default:"-" }}</td>
+                    <td>
+                        <div style="display: flex; gap: 0.35rem;">
+                            <a href="{% url 'asset-detail' asset.pk %}" class="btn btn-secondary btn-sm" title="View details and previous users">
+                                <i class="fa-solid fa-eye"></i>
+                            </a>
+                            <a href="{% url 'asset-reassign' asset.pk %}" class="btn btn-danger btn-sm" title="Reassign to another employee">
+                                <i class="fa-solid fa-right-left"></i>
+                            </a>
+                            {% if asset.current_employee %}
+                                <a href="{% url 'asset-return' asset.pk %}" class="btn btn-secondary btn-sm" style="color: #2563eb;" title="Return to Stock (Mark Available)">
+                                    <i class="fa-solid fa-box-archive"></i>
+                                </a>
+                            {% endif %}
+                            <a href="{% url 'asset-edit' asset.pk %}" class="btn btn-secondary btn-sm" title="Edit specifications">
+                                <i class="fa-solid fa-pen-to-square"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="8" style="text-align: center; color: var(--text-muted); padding: 2.5rem;">
+                        No assets found matching your criteria. <a href="{% url 'asset-create' %}">Register a new asset</a>.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- PAGINATION -->
+    {% if page_obj.has_other_pages %}
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1.25rem;">
+        <span style="font-size: 0.85rem; color: var(--text-muted);">
+            Showing page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+        </span>
+        <div style="display: flex; gap: 0.5rem;">
+            {% if page_obj.has_previous %}
+                <a href="?page={{ page_obj.previous_page_number }}{% if query %}&q={{ query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}" class="btn btn-secondary btn-sm">&laquo; Previous</a>
+            {% endif %}
+            {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}{% if query %}&q={{ query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}" class="btn btn-secondary btn-sm">Next &raquo;</a>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
